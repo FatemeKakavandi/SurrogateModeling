@@ -31,9 +31,9 @@ y_train_tensor = torch.tensor(np.array(y_train), dtype=torch.float32).to(device)
 whole_x = torch.tensor(np.array(x), dtype=torch.float32).to(device)
 
 # Initialize the LSTM model
-input_size = 7
-hidden_size = 250
-output_size = 500
+input_size = X_train_tensor.shape[1]
+hidden_size = round(y_train_tensor.shape[1]/2)
+output_size = y_train_tensor.shape[1]
 
 model = LSTMModel(input_size, hidden_size, output_size,num_layers=3).to(device)
 
@@ -41,8 +41,12 @@ model = LSTMModel(input_size, hidden_size, output_size,num_layers=3).to(device)
 criterion = nn.MSELoss()
 optimizer = optim.Adam(model.parameters(), lr=0.0001)
 
+# Loss Threshold
+epsilon = 1e-4
+
 # Training loop
 num_epochs = 100000
+
 for epoch in range(num_epochs):
     # Forward pass
     outputs = model(X_train_tensor)
@@ -56,7 +60,7 @@ for epoch in range(num_epochs):
     if (epoch + 1) % 100 == 0:
         print(f'Epoch [{epoch + 1}/{num_epochs}], Loss: {loss.item():.4f}')
 
-    if loss.item() < 1e-4:
+    if loss.item() < epsilon:
         print(f'Loss reached zero at Epoch [{epoch + 1}]. Stopping early.')
         break
 # After training, you can use the model to generate force profiles for new input data
